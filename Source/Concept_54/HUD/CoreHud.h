@@ -45,5 +45,7 @@ public:
     void ToggleVisibility();
 
     void CollapseAllWidgets();
+
+    void MakeQuestionMenuVisible();
 	
 };

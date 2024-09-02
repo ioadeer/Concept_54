@@ -100,4 +100,12 @@ void ACoreHud::CollapseAllWidgets()
     }
 }
 
+void ACoreHud::MakeQuestionMenuVisible()
+{
+    if (HUDWidgetInstance)
+    {
+        HUDWidgetInstance->SetVisibility(ESlateVisibility::Visible);
+    }
+}
+
 

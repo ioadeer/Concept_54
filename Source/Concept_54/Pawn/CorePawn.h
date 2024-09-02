@@ -6,6 +6,8 @@
 #include "GameFramework/Pawn.h"
 #include "InputAction.h"
 #include "../HUD/CoreHud.h"
+#include "../Actor/DynamicMaterialActor.h"
+#include "../Actor/AudioPlayerActor.h"
 #include "CorePawn.generated.h"
 
 UCLASS()
@@ -50,4 +52,12 @@ private:
 	void KeyIPressedTriggerAction(const FInputActionValue& Value);
 
 	ACoreHud* MyHud;
+	ADynamicMaterialActor* MyDynamicMaterialActor;
+	AAudioPlayerActor* MyAudioPlayerActor;
+
+	//Routine
+	void ShowVisualStimulus();
+	void PlaySound();
+	void GetAnswer();
+	void SetTrail();
 };

@@ -33,5 +33,7 @@ private:
 	UFUNCTION(BlueprintCallable)
 	void NoButtonClicked();
 
+	void QuestionAnsweredCallBack();
+
 
 };

@@ -29,12 +29,12 @@ void ADynamicMaterialActor::Tick(float DeltaTime)
 
 }
 
-void ADynamicMaterialActor::InterpolateOpacity(float InitialOpacity, float TargetOpacity)
+void ADynamicMaterialActor::InterpolateOpacity(float FadeTime, float InitialOpacity, float TargetOpacity)
 {
-    if (CurrentTime < InterpolationDuration && DynamicMaterialA)
+    if (CurrentTime < FadeTime && DynamicMaterialA)
     {
         CurrentTime += 0.01f; // Update time
-        float Alpha = FMath::Clamp(CurrentTime / InterpolationDuration, 0.0f, 1.0f); // Calculate alpha value
+        float Alpha = FMath::Clamp(CurrentTime / FadeTime, 0.0f, 1.0f); // Calculate alpha value
         float NewOpacity = FMath::Lerp(InitialOpacity, TargetOpacity, Alpha); // Interpolate between initial and target opacity
 
         // Update material opacity
@@ -48,19 +48,19 @@ void ADynamicMaterialActor::InterpolateOpacity(float InitialOpacity, float Targe
     }
 }
 
-void ADynamicMaterialActor::FadeMaterial(UMaterialInstanceDynamic* MaterialToFade, float InitialOpacity, float TargetOpacity)
+void ADynamicMaterialActor::FadeMaterial(UMaterialInstanceDynamic* MaterialToFade,float FadeTime, float InitialOpacity, float TargetOpacity)
 {
     if (MaterialToFade)
     {
         bShouldStopFade = false;
         CurrentTime = 0.f;
         FTimerDelegate FadeTimerDelegate;
-        FadeTimerDelegate.BindLambda([this, MaterialToFade, InitialOpacity, TargetOpacity]()
+        FadeTimerDelegate.BindLambda([this, MaterialToFade, FadeTime, InitialOpacity, TargetOpacity]()
         {
-                if (CurrentTime < InterpolationDuration && !bShouldStopFade)
+                if (CurrentTime < FadeTime && !bShouldStopFade)
                 {
                     CurrentTime += 0.01f; // Update time
-                    float Alpha = FMath::Clamp(CurrentTime / InterpolationDuration, 0.0f, 1.0f); // Calculate alpha value
+                    float Alpha = FMath::Clamp(CurrentTime / FadeTime, 0.0f, 1.0f); // Calculate alpha value
                     float NewOpacity = FMath::Lerp(InitialOpacity, TargetOpacity, Alpha); // Interpolate between initial and target opacity
 
                     // Update material opacity
@@ -97,7 +97,7 @@ void ADynamicMaterialActor::SetMaterialA()
         {
             DynamicMaterialA->SetScalarParameterValue(FName(TEXT("Opacity")), 0.f);
             MeshComponent->SetMaterial(0, DynamicMaterialA);
-            FadeMaterial(DynamicMaterialA, 0.f, 1.f);
+            FadeMaterial(DynamicMaterialA,FadeInTime, 0.f, 1.f);
         }
         else
         {
@@ -136,7 +136,7 @@ void ADynamicMaterialActor::FadeOutMaterial()
     UMaterialInstanceDynamic* ActualMaterial = Cast<UMaterialInstanceDynamic>(MeshComponent->GetMaterial(0));
     if (ActualMaterial)
     {
-        FadeMaterial(ActualMaterial, 1.f, 0.f);
+        FadeMaterial(ActualMaterial, FadeOutTime, 1.f, 0.f);
     }
     else
     {

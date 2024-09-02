@@ -31,15 +31,18 @@ private:
 	class UMaterialInterface* MyMaterial;
 
 	UPROPERTY(EditDefaultsOnly)
-	float InterpolationDuration = 3.f;
+	float FadeInTime = 3.f;
+
+	UPROPERTY(EditDefaultsOnly)
+	float FadeOutTime = 2.f;
 
 	float CurrentTime = 0.f;
 
-	void InterpolateOpacity(float InitialOpacity, float TargetOpacity);
+	void InterpolateOpacity(float FadeTime, float InitialOpacity, float TargetOpacity);
 	FTimerHandle InterpolationTimerHandle;
 
 	FTimerHandle FadeTimerHandle;
-	void FadeMaterial(UMaterialInstanceDynamic* MaterialFadeIn, float InitialOpacity, float TargetOpacity);
+	void FadeMaterial(UMaterialInstanceDynamic* MaterialFadeIn, float FadeTime, float InitialOpacity, float TargetOpacity);
 	void StopFade();
 	bool bShouldStopFade = false;
 

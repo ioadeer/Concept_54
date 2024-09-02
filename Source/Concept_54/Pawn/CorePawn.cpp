@@ -34,6 +34,29 @@ void ACorePawn::BeginPlay()
 		UE_LOG(LogTemp, Warning, TEXT("Could not cast PC or HUD"))
 	}
 
+	TArray<AActor*> FoundActors;
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), ADynamicMaterialActor::StaticClass(), FoundActors);
+
+	if (FoundActors.Num() > 0)
+	{
+		MyDynamicMaterialActor = Cast<ADynamicMaterialActor>(FoundActors[0]);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("No actors found."));
+	}
+
+	FoundActors.Empty();
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), AAudioPlayerActor::StaticClass(), FoundActors);
+
+	if (FoundActors.Num() > 0)
+	{
+		MyAudioPlayerActor = Cast<AAudioPlayerActor>(FoundActors[0]);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("No actors found."));
+	}
 }
 
 // Called every frame
@@ -79,6 +102,9 @@ void ACorePawn::StartTrailSequence()
 {
 	UE_LOG(LogTemp, Warning, TEXT("Callback on player controller experiment start function"));
 	MyHud->CollapseAllWidgets();
+	ShowVisualStimulus();
+
+
 	//Set up visual cue
 	//Play sound
 	//Ask for answer
@@ -94,7 +120,7 @@ void ACorePawn::KeyAPressedTriggerAction(const FInputActionValue& Value)
 
 	if (FoundActors.Num() > 0)
 	{
-		ADynamicMaterialActor* MyDynamicMaterialActor = Cast<ADynamicMaterialActor>(FoundActors[0]);
+		MyDynamicMaterialActor = Cast<ADynamicMaterialActor>(FoundActors[0]);
 		if (MyDynamicMaterialActor)
 		{
 			MyDynamicMaterialActor->SetMaterialA();
@@ -116,7 +142,7 @@ void ACorePawn::KeyBPressedTriggerAction(const FInputActionValue& Value)
 
 	if (FoundActors.Num() > 0)
 	{
-		ADynamicMaterialActor* MyDynamicMaterialActor = Cast<ADynamicMaterialActor>(FoundActors[0]);
+		MyDynamicMaterialActor = Cast<ADynamicMaterialActor>(FoundActors[0]);
 		if (MyDynamicMaterialActor)
 		{
 			MyDynamicMaterialActor->FadeOutMaterial();
@@ -133,5 +159,51 @@ void ACorePawn::KeyIPressedTriggerAction(const FInputActionValue& Value)
 	UE_LOG(LogTemp, Warning, TEXT("I Key Pressed!..."));
 	MyHud->ToggleVisibility();
 	
+}
+
+void ACorePawn::ShowVisualStimulus()
+{
+	MyDynamicMaterialActor->SetMaterialA();
+	FTimerHandle PlaySoundTimerHandle;
+	//FTimerDelegate PlaySoundDelegate = FTimerDelegate::CreateUObject(
+	//	this,
+	//	&ACorePawn::PlaySound,
+	//	FText("sound")
+	//);
+	UWorld* MyWorld = GetWorld();
+	if (!MyWorld)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("NULL POINTER TO WORLD"));
+		return;
+	}
+	MyWorld->GetTimerManager().SetTimer(
+		PlaySoundTimerHandle, 
+		this, 
+		&ACorePawn::PlaySound, 
+		2.f, 
+		false);
+}
+
+void ACorePawn::PlaySound()
+{
+	MyAudioPlayerActor->PlaySound();
+
+	FTimerHandle GetAnswerTimerHandle;
+	GetWorld()->GetTimerManager().SetTimer(
+		GetAnswerTimerHandle,
+		this,
+		&ACorePawn::GetAnswer,
+		1.f,
+		false);
+}
+
+void ACorePawn::GetAnswer()
+{
+	MyDynamicMaterialActor->FadeOutMaterial();
+	MyHud->MakeQuestionMenuVisible();
+}
+
+void ACorePawn::SetTrail()
+{
 }
 
