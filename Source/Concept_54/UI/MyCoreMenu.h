@@ -6,6 +6,7 @@
 #include "Blueprint/UserWidget.h"
 #include "Components/Button.h"
 #include "Components/Textblock.h"
+#include "../GameMode/MyCoreGameMode.h"
 #include "MyCoreMenu.generated.h"
 
 /**
@@ -17,6 +18,9 @@ class CONCEPT_54_API UMyCoreMenu : public UUserWidget
 	GENERATED_BODY()
 	
 protected:
+
+	virtual void NativeOnInitialized() override;
+
 	UPROPERTY(BluePrintReadOnly, VisibleAnywhere, meta = (BindWidget))
 	UTextBlock* Question;
 
@@ -35,5 +39,5 @@ private:
 
 	void QuestionAnsweredCallBack();
 
-
+	AMyCoreGameMode* MyCoreGameMode;
 };

@@ -17,5 +17,12 @@ class CONCEPT_54_API AMyCoreGameMode : public AGameModeBase
 protected:
 	virtual void BeginPlay() override;
 
-	
+
+public:
+	void SaveStringToFile(FString Text);
+
+private:
+	FString FileName;
+	FString FilePath;
+	FString DateTimeString;
 };
