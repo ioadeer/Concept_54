@@ -5,9 +5,13 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Pawn.h"
 #include "InputAction.h"
+
+#include "../GameMode/MyCoreGameMode.h"
+#include "../Data/ExperimentDataStruct.h"
 #include "../HUD/CoreHud.h"
 #include "../Actor/DynamicMaterialActor.h"
 #include "../Actor/AudioPlayerActor.h"
+
 #include "CorePawn.generated.h"
 
 UCLASS()
@@ -51,9 +55,12 @@ private:
 
 	void KeyIPressedTriggerAction(const FInputActionValue& Value);
 
+	AMyCoreGameMode* MyCoreGameMode;
 	ACoreHud* MyHud;
 	ADynamicMaterialActor* MyDynamicMaterialActor;
 	AAudioPlayerActor* MyAudioPlayerActor;
+
+	FExperimentDataStruct* TrialData;
 
 	//Routine
 	void ShowVisualStimulus();

@@ -1,11 +1,11 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
+#include "MyCoreGameMode.h"
 #include "HAL/PlatformFileManager.h"
 #include "Misc/FileHelper.h"
 #include "Misc/Paths.h"
 #include "Misc/DateTime.h"
 #include "HAL/PlatformFilemanager.h"
-#include "MyCoreGameMode.h"
 
 void AMyCoreGameMode::BeginPlay()
 {
@@ -40,18 +40,42 @@ void AMyCoreGameMode::SaveStringToFile(FString Text)
    
 }
 
+FExperimentDataStruct* AMyCoreGameMode::GetTrialAndSetNextTrial()
+{
+    FExperimentDataStruct* TrialData = GetDataTableRowByIndex(TrialIndex);
+    TrialIndex++;
+    if (!TrialData)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("Could not get trial data!"));
+        return nullptr;
+    }
+    return TrialData;
+}
+
 void AMyCoreGameMode::ConfigExperimentalSession()
 {
     FilePath = FPaths::ProjectDir() + "/Data/Subjects/" + "Subject_001.csv";
     ImportCSV(FilePath);
     if (ExperimentDataTable)
     {
-        FString DataTableString = ExperimentDataTable->GetTableAsString();
-        UE_LOG(LogTemp, Warning, TEXT("Table loaded: \n %s"), *DataTableString);
+        /*FString DataTableString = ExperimentDataTable->GetTableAsString();
+        UE_LOG(LogTemp, Warning, TEXT("Table loaded: s"), *DataTableString);*/
+        UE_LOG(LogTemp, Warning, TEXT("Experiment Data Table succesfully loaded"));
+        TArray<FExperimentDataStruct*> ExperimentDataTableRows;
+        ExperimentDataTable->GetAllRows(TEXT(""), ExperimentDataTableRows);
+        NumberOfTrials = ExperimentDataTableRows.Num();
+        if (NumberOfTrials != 75)
+        {
+            UE_LOG(LogTemp, Warning, TEXT("Experiment Data Table should contain 75 rows!"));
+        }
+        else
+        {
+            UE_LOG(LogTemp, Warning, TEXT("Length of Experiment Data Table is fine: 75 rows"));
+        }
     }
     else
     {
-        UE_LOG(LogTemp, Warning, TEXT("Could not load data table"));
+        UE_LOG(LogTemp, Warning, TEXT("Could not load Experiment Data Table"));
     }
 }
 
@@ -123,7 +147,7 @@ void AMyCoreGameMode::ExportToCSV(const FString& _FilePath)
     }
 }
 
-void AMyCoreGameMode::ModifyDataTable(FName RowName, const FExperimentDataStruct& NewData)
+void AMyCoreGameMode::ModifyDataTableRowByIndex(int32 Index, const FExperimentDataStruct& NewData)
 {
     if (!ExperimentDataTable)
     {
@@ -131,15 +155,39 @@ void AMyCoreGameMode::ModifyDataTable(FName RowName, const FExperimentDataStruct
         return;
     }
 
-    FExperimentDataStruct* DataRow = ExperimentDataTable->FindRow<FExperimentDataStruct>(RowName, TEXT(""));
+    FString IndexString = FString::FromInt(Index);
+    FExperimentDataStruct* DataRow = ExperimentDataTable->FindRow<FExperimentDataStruct>(FName(*IndexString), TEXT(""));
 
     if (DataRow)
     {
         *DataRow = NewData;
-        UE_LOG(LogTemp, Log, TEXT("Row %s updated in DataTable."), *RowName.ToString());
+        UE_LOG(LogTemp, Log, TEXT("Row %s updated in DataTable."), *IndexString);
     }
     else
     {
-        UE_LOG(LogTemp, Warning, TEXT("Row %s not found in DataTable."), *RowName.ToString());
+        UE_LOG(LogTemp, Warning, TEXT("Row %s not found in DataTable."), *IndexString);
     }
+}
+
+FExperimentDataStruct* AMyCoreGameMode::GetDataTableRowByIndex(int32 Index)
+{
+    if (!ExperimentDataTable)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("DataTable is null. Could find Row by index"));
+        return nullptr;
+    }
+    if (Index >NumberOfTrials )
+    {
+        UE_LOG(LogTemp, Warning, TEXT("Index passed is out of bounds"));
+        return nullptr;
+    }
+
+    FString IndexString = FString::FromInt(Index);
+
+    FExperimentDataStruct* DataRow = ExperimentDataTable->FindRow<FExperimentDataStruct>(FName(*IndexString), TEXT(""));
+    if (!DataRow)
+    {
+        UE_LOG(LogTemp, Log, TEXT("Could not get data row"));
+    }
+    return DataRow;
 }

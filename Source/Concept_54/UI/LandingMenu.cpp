@@ -1,8 +1,8 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
+#include "LandingMenu.h"
 #include "../Pawn/CorePawn.h"
 #include "Kismet/GameplayStatics.h"
-#include "LandingMenu.h"
 
 void ULandingMenu::StartExperiment()
 {

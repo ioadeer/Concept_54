@@ -7,8 +7,10 @@
 #include "InputActionValue.h"
 
 #include "Kismet/GameplayStatics.h"
-#include "../Actor/DynamicMaterialActor.h"
 
+#include "../GameMode/MyCoreGameMode.h"
+#include "../Data/ExperimentDataStruct.h"
+#include "../Actor/DynamicMaterialActor.h"
 #include "../HUD/CoreHud.h"
 
 // Sets default values
@@ -17,12 +19,20 @@ ACorePawn::ACorePawn()
 	// Set this pawn to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
+
 }
 
 // Called when the game starts or when spawned
 void ACorePawn::BeginPlay()
 {
 	Super::BeginPlay();
+	
+	// Get Reference to Game Mode
+	MyCoreGameMode = Cast<AMyCoreGameMode>(GetWorld()->GetAuthGameMode());
+	if (!MyCoreGameMode)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Could not cast Game Mode"));
+	}
 
 	APlayerController* PC = Cast<APlayerController>(GetController());
 	if (PC)
@@ -70,7 +80,6 @@ void ACorePawn::Tick(float DeltaTime)
 void ACorePawn::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
-	UE_LOG(LogTemp, Warning, TEXT("Setting input system context..."));
 	APlayerController* PC = Cast<APlayerController>(GetController());
 	if (ULocalPlayer* LocalPlayer = Cast<ULocalPlayer>(PC->GetLocalPlayer()))
 	{
@@ -102,8 +111,13 @@ void ACorePawn::StartTrailSequence()
 {
 	UE_LOG(LogTemp, Warning, TEXT("Callback on player controller experiment start function"));
 	MyHud->CollapseAllWidgets();
+	TrialData = MyCoreGameMode->GetTrialAndSetNextTrial();
+	if (TrialData)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Trial %d."), TrialData->TrialNumber);
+		UE_LOG(LogTemp, Warning, TEXT("Audio stimulus %s."), *TrialData->AudioStimulus);
+	}
 	ShowVisualStimulus();
-
 
 	//Set up visual cue
 	//Play sound

@@ -21,6 +21,7 @@ protected:
 
 public:
 	void SaveStringToFile(FString Text);
+	FExperimentDataStruct* GetTrialAndSetNextTrial();
 
 private:
 	// Config
@@ -35,9 +36,14 @@ private:
 	void ImportCSV(const FString& _FilePath);
 	void ExportToCSV(const FString& _FilePath);
 
-	void ModifyDataTable(FName RowName, const FExperimentDataStruct& NewData);
+	void ModifyDataTableRowByIndex(int32 Index, const FExperimentDataStruct& NewData);
+	FExperimentDataStruct* GetDataTableRowByIndex(int32 Index);
 
 	// Variables
+	int32 TrialIndex = 0;
+
+	int32 NumberOfTrials;
+
 	FString FileName;
 	FString FilePath;
 	FString DateTimeString;

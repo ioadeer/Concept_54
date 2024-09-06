@@ -1,10 +1,9 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
+#include "MyCoreMenu.h"
 #include "../Pawn/CorePawn.h"
 #include "../GameMode/MyCoreGameMode.h"
-
-#include "MyCoreMenu.h"
 
 void UMyCoreMenu::NativeOnInitialized()
 {
