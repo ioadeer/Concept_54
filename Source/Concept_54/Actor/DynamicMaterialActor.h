@@ -4,13 +4,16 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "../Data/RoomMaterial.h"
+#include "../Data/RoomMaterialNames.h"
+
 #include "DynamicMaterialActor.generated.h"
 
 UCLASS()
 class CONCEPT_54_API ADynamicMaterialActor : public AActor
 {
 	GENERATED_BODY()
-	
+
 public:
 	// Sets default values for this actor's properties
 	ADynamicMaterialActor();
@@ -49,7 +52,14 @@ private:
 	UMaterialInterface* MaterialA;
 	UMaterialInstanceDynamic* DynamicMaterialA;
 
+	TMap<int32, FString> RoomMaterialMap;
+
+	
+
 public:
+	void SetMaterialFromResourceIndexValue(int32 _index);
+	void SetMaterialFromRoomMaterial(ERoomMaterial _RoomMaterial);
+
 	void SetMaterialA();
 	void SetMaterialB();
 

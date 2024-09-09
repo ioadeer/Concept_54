@@ -4,6 +4,9 @@
 #include "Materials/MaterialInterface.h"
 #include "Components/StaticMeshComponent.h"
 
+#include "../Data/RoomMaterialNames.h"
+#include "../Data/RoomMaterial.h"
+
 // Sets default values
 ADynamicMaterialActor::ADynamicMaterialActor()
 {
@@ -13,6 +16,12 @@ ADynamicMaterialActor::ADynamicMaterialActor()
     MeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MyMesh"));
     RootComponent = MeshComponent;
 
+    RoomMaterialMap.Add(0, RoomMaterialNames::RoomMaterial_1);
+    RoomMaterialMap.Add(1, RoomMaterialNames::RoomMaterial_2);
+    RoomMaterialMap.Add(2, RoomMaterialNames::RoomMaterial_3);
+    RoomMaterialMap.Add(3, RoomMaterialNames::RoomMaterial_4);
+    RoomMaterialMap.Add(4, RoomMaterialNames::RoomMaterial_5);
+    
 }
 
 // Called when the game starts or when spawned
@@ -86,6 +95,94 @@ void ADynamicMaterialActor::StopFade()
     
 }
 
+void ADynamicMaterialActor::SetMaterialFromResourceIndexValue(int32 _index)
+{
+    if (_index < RoomMaterialMap.Num())
+    {
+        if (MeshComponent)
+        {
+            
+            FString MaterialResourceName = RoomMaterialMap[_index];
+            MaterialA = LoadObject<UMaterialInterface>(nullptr, *MaterialResourceName);
+            DynamicMaterialA = UMaterialInstanceDynamic::Create(MaterialA, nullptr);
+
+            if (MaterialA)
+            {
+                DynamicMaterialA->SetScalarParameterValue(FName(TEXT("Opacity")), 0.f);
+                MeshComponent->SetMaterial(0, DynamicMaterialA);
+                FadeMaterial(DynamicMaterialA, FadeInTime, 0.f, 1.f);
+            }
+            else
+            {
+                UE_LOG(LogTemp, Warning, TEXT("Failed to load material."));
+            }
+        }
+        else
+        {
+            UE_LOG(LogTemp, Warning, TEXT("MeshComponent not found."));
+        }
+    }
+    else
+    {
+        UE_LOG(LogTemp, Warning, TEXT("Dynamic MatActor: Room material map index value %d out of bounds"), _index);
+    }
+}
+
+void ADynamicMaterialActor::SetMaterialFromRoomMaterial(ERoomMaterial _RoomMaterial)
+{
+    int32 index;
+    switch (_RoomMaterial)
+    {
+    case ERoomMaterial::Room_1:
+        index = 0;
+        break;
+    case ERoomMaterial::Room_2:
+        index = 1;
+        break;
+    case ERoomMaterial::Room_3:
+        index = 2;
+        break;
+    case ERoomMaterial::Room_4:
+        index = 3;
+        break;
+    case ERoomMaterial::Room_5:
+        index = 4;
+        break;
+    default:
+        UE_LOG(LogTemp, Warning, TEXT("Wrong Room"))
+            return;
+        break;
+    }
+    if (index < RoomMaterialMap.Num())
+    {
+        if (MeshComponent)
+        {
+            FString MaterialResourceName = RoomMaterialMap[index];
+            MaterialA = LoadObject<UMaterialInterface>(nullptr, *MaterialResourceName);
+            DynamicMaterialA = UMaterialInstanceDynamic::Create(MaterialA, nullptr);
+
+            if (MaterialA)
+            {
+                DynamicMaterialA->SetScalarParameterValue(FName(TEXT("Opacity")), 0.f);
+                MeshComponent->SetMaterial(0, DynamicMaterialA);
+                FadeMaterial(DynamicMaterialA, FadeInTime, 0.f, 1.f);
+            }
+            else
+            {
+                UE_LOG(LogTemp, Warning, TEXT("Failed to load material."));
+            }
+        }
+        else
+        {
+            UE_LOG(LogTemp, Warning, TEXT("MeshComponent not found."));
+        }
+    }
+    else
+    {
+        UE_LOG(LogTemp, Warning, TEXT("Dynamic MatActor: Room material map index value %d out of bounds"), index);
+    }
+}
+
 void ADynamicMaterialActor::SetMaterialA()
 {
     if (MeshComponent)
@@ -140,7 +237,7 @@ void ADynamicMaterialActor::FadeOutMaterial()
     }
     else
     {
-        UE_LOG(LogTemp, Warning, TEXT("Could cast mesh material to dynamic material"));
+        UE_LOG(LogTemp, Warning, TEXT("Could not cast mesh material to dynamic material"));
     }
 }
 

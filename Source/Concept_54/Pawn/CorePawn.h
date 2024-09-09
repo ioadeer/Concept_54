@@ -8,6 +8,7 @@
 
 #include "../GameMode/MyCoreGameMode.h"
 #include "../Data/ExperimentDataStruct.h"
+#include "../Data/RoomMaterial.h"
 #include "../HUD/CoreHud.h"
 #include "../Actor/DynamicMaterialActor.h"
 #include "../Actor/AudioPlayerActor.h"
@@ -63,8 +64,10 @@ private:
 	FExperimentDataStruct* TrialData;
 
 	//Routine
-	void ShowVisualStimulus();
+	void ShowVisualStimulus(FString VisualStimulus);
 	void PlaySound();
 	void GetAnswer();
 	void SetTrail();
+
+	void NextStimulus();
 };

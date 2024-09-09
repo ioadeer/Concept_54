@@ -115,9 +115,15 @@ void ACorePawn::StartTrailSequence()
 	if (TrialData)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Trial %d."), TrialData->TrialNumber);
-		UE_LOG(LogTemp, Warning, TEXT("Audio stimulus %s."), *TrialData->AudioStimulus);
+		UE_LOG(LogTemp, Warning, TEXT("Visual stimulus %s."), *TrialData->VisualStimulus);
+		ShowVisualStimulus(TrialData->VisualStimulus);
 	}
-	ShowVisualStimulus();
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Pawn: Error in Trial Data struct."));
+	}
+	//NextStimulus();
+	//ShowVisualStimulus(TrialData->VisualStimulus);
 
 	//Set up visual cue
 	//Play sound
@@ -175,9 +181,39 @@ void ACorePawn::KeyIPressedTriggerAction(const FInputActionValue& Value)
 	
 }
 
-void ACorePawn::ShowVisualStimulus()
+void ACorePawn::ShowVisualStimulus(FString VisualStimulus)
 {
-	MyDynamicMaterialActor->SetMaterialA();
+	ERoomMaterial RoomMaterial;
+	uint32 Stimulus = FCString::Atoi(*VisualStimulus);
+	
+	switch (Stimulus)
+	{
+	case 0:
+		RoomMaterial = ERoomMaterial::Room_1;
+		break;
+	case 1:
+		RoomMaterial = ERoomMaterial::Room_2;
+		break;
+	case 2:
+		RoomMaterial = ERoomMaterial::Room_3;
+		break;
+	case 3:
+		RoomMaterial = ERoomMaterial::Room_4;
+		break;
+	case 4:
+		RoomMaterial = ERoomMaterial::Room_5;
+		break;
+	default:
+		RoomMaterial = ERoomMaterial::Error;
+		break;
+	}
+
+	if (RoomMaterial == ERoomMaterial::Error)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Problem converting string to room number"));
+	}
+
+	MyDynamicMaterialActor->SetMaterialFromRoomMaterial(RoomMaterial);
 	FTimerHandle PlaySoundTimerHandle;
 	//FTimerDelegate PlaySoundDelegate = FTimerDelegate::CreateUObject(
 	//	this,
@@ -219,5 +255,27 @@ void ACorePawn::GetAnswer()
 
 void ACorePawn::SetTrail()
 {
+}
+
+void ACorePawn::NextStimulus()
+{
+	FTimerHandle PlaySoundTimerHandle;
+	//FTimerDelegate PlaySoundDelegate = FTimerDelegate::CreateUObject(
+	//	this,
+	//	&ACorePawn::PlaySound,
+	//	FText("sound")
+	//);
+	UWorld* MyWorld = GetWorld();
+	if (!MyWorld)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("NULL POINTER TO WORLD"));
+		return;
+	}
+	MyWorld->GetTimerManager().SetTimer(
+		PlaySoundTimerHandle,
+		this,
+		&ACorePawn::PlaySound,
+		2.f,
+		false);
 }
 

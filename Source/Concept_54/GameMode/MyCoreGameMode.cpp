@@ -34,7 +34,7 @@ void AMyCoreGameMode::SaveStringToFile(FString Text)
             {
                 UE_LOG(LogTemp, Warning, TEXT("Answer not saved!"));
             }
-            UE_LOG(LogTemp, Warning, TEXT("File was not created!"));
+            //UE_LOG(LogTemp, Warning, TEXT("File was not created!"));
         }
     }
    
