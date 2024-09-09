@@ -22,7 +22,7 @@ void UMyCoreMenu::YesButtonClicked()
 	UE_LOG(LogTemp, Warning, TEXT("Right button clicked"));
 	FTimerHandle NextTrialTimerHandle;
 	FString Answer = "Yes";
-	MyCoreGameMode->SaveStringToFile(Answer);
+	//MyCoreGameMode->SaveStringToFile(Answer);
 	GetWorld()->GetTimerManager().SetTimer(
 		NextTrialTimerHandle,
 		this,
@@ -37,7 +37,7 @@ void UMyCoreMenu::NoButtonClicked()
 	UE_LOG(LogTemp, Warning, TEXT("Left button clicked"));
 	FTimerHandle NextTrialTimerHandle;
 	FString Answer = "No";
-	MyCoreGameMode->SaveStringToFile(Answer);
+	//MyCoreGameMode->SaveStringToFile(Answer);
 	GetWorld()->GetTimerManager().SetTimer(
 		NextTrialTimerHandle,
 		this,

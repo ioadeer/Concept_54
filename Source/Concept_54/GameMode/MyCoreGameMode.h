@@ -20,7 +20,8 @@ protected:
 
 
 public:
-	void SaveStringToFile(FString Text);
+	void SaveDatetimeAndAnswerToFile(FString PathToOutputFile, FString Text);
+	void JSONTest();
 	FExperimentDataStruct* GetTrialAndSetNextTrial();
 
 private:
@@ -33,8 +34,8 @@ private:
 
 	void StartExperimentSessionLog();
 
-	void ImportCSV(const FString& _FilePath);
-	void ExportToCSV(const FString& _FilePath);
+	void ImportCSV(const FString& CSVFileName);
+	void ExportToCSV(const FString& CSVFileName);
 
 	void ModifyDataTableRowByIndex(int32 Index, const FExperimentDataStruct& NewData);
 	FExperimentDataStruct* GetDataTableRowByIndex(int32 Index);
@@ -47,6 +48,20 @@ private:
 	FString FileName;
 	FString FilePath;
 	FString DateTimeString;
-};
 
+	FString SessionFileName;
+	FString SessionFilePath;
+
+	FString LogFileName;
+	FString LogFilePath;
+
+	FString InputSubjectTrialInfoFile;
+	FString InputSubjectTrialInfoFilePath;
+
+	FString ExportSubjectTrailInfoFile;
+
+	void WriteJSONFile();
+	void ReadJSONFile();
+	void HandleJSONFile();
+};
 
