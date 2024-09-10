@@ -40,4 +40,6 @@ private:
 	void QuestionAnsweredCallBack();
 
 	AMyCoreGameMode* MyCoreGameMode;
+
+	FString Answer;
 };

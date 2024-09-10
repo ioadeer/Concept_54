@@ -9,6 +9,9 @@
 #include "Kismet/GameplayStatics.h"
 
 #include "../GameMode/MyCoreGameMode.h"
+
+#include "../Data/SessionDataStruct.h"
+#include "../Data/SessionStateEnum.h"
 #include "../Data/ExperimentDataStruct.h"
 #include "../Actor/DynamicMaterialActor.h"
 #include "../HUD/CoreHud.h"
@@ -18,7 +21,6 @@ ACorePawn::ACorePawn()
 {
 	// Set this pawn to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
-
 
 }
 
@@ -107,20 +109,32 @@ void ACorePawn::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 
 }
 
-void ACorePawn::StartTrailSequence()
+void ACorePawn::StartTrialSequence()
 {
-	UE_LOG(LogTemp, Warning, TEXT("Callback on player controller experiment start function"));
 	MyHud->CollapseAllWidgets();
-	TrialData = MyCoreGameMode->GetTrialAndSetNextTrial();
-	if (TrialData)
+	FSessionDataStruct CurrentDataSessionState = MyCoreGameMode->GetSessionDataStruct();
+	if (CurrentDataSessionState.SessionSuccess == "Started")
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Trial %d."), TrialData->TrialNumber);
-		UE_LOG(LogTemp, Warning, TEXT("Visual stimulus %s."), *TrialData->VisualStimulus);
-		ShowVisualStimulus(TrialData->VisualStimulus);
+		TrialData = MyCoreGameMode->GetTrialAndSetNextTrial();
+		if (!TrialData)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Pawn: Error in Trial Data struct."));
+			return;
+		}
+		UE_LOG(LogTemp, Warning, TEXT("Trial: %d"), TrialData->TrialNumber);
+		if (TrialData)
+		{
+			ShowVisualStimulus(TrialData->VisualStimulus);
+		}
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Pawn: Error in Trial Data struct."));
+		}
 	}
-	else
+	else if (CurrentDataSessionState.SessionSuccess == "Success")
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Pawn: Error in Trial Data struct."));
+		UE_LOG(LogTemp, Warning, TEXT("Experiment ended succesfully."));
+		// GO TO GOODBYE HUD
 	}
 	//NextStimulus();
 	//ShowVisualStimulus(TrialData->VisualStimulus);
@@ -129,6 +143,15 @@ void ACorePawn::StartTrailSequence()
 	//Play sound
 	//Ask for answer
 	//Repeat
+}
+
+void ACorePawn::SetTrialAnswer(FString Answer)
+{
+	//FExperimentDataStruct* NewData;
+	if (TrialData)
+	{
+		TrialData->Response = Answer;
+	}
 }
 
 void ACorePawn::KeyAPressedTriggerAction(const FInputActionValue& Value)

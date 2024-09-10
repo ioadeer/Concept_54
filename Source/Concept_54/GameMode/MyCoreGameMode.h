@@ -26,6 +26,7 @@ public:
 	void SaveDatetimeAndAnswerToFile(FString PathToOutputFile, FString Text);
 
 	FExperimentDataStruct* GetTrialAndSetNextTrial();
+	FSessionDataStruct GetSessionDataStruct();
 
 private:
 	// Config
@@ -36,6 +37,8 @@ private:
 	void ConfigExperimentalSession();
 
 	void StartExperimentSessionLog();
+
+	void FinishExperimentalSession();
 
 	void ImportCSV(const FString& CSVFileName);
 	void ExportToCSV(const FString& CSVFileName);
@@ -69,8 +72,6 @@ private:
 	void CreateSessionJSONFile();
 	void ReadSessionJSONFile();
 	void WriteSessionJSONFile(ESessionStateEnum SessionState);
-	void ReadJSONFile();
-	void HandleJSONFile();
 
 };
 

@@ -25,8 +25,21 @@ void AMyCoreGameMode::BeginPlay()
 
 FExperimentDataStruct* AMyCoreGameMode::GetTrialAndSetNextTrial()
 {
+    if (!NumberOfTrials)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("Number of Trials has no been set"));
+        return nullptr;
+    }
+    if (!(TrialIndex < NumberOfTrials))
+    {
+        UE_LOG(LogTemp, Warning, TEXT("End of experiment!"));
+        FinishExperimentalSession();
+        return nullptr;
+    }
+  
     FExperimentDataStruct* TrialData = GetDataTableRowByIndex(TrialIndex);
     TrialIndex++;
+
     if (!TrialData)
     {
         UE_LOG(LogTemp, Warning, TEXT("Could not get trial data!"));
@@ -35,12 +48,17 @@ FExperimentDataStruct* AMyCoreGameMode::GetTrialAndSetNextTrial()
     return TrialData;
 }
 
+FSessionDataStruct AMyCoreGameMode::GetSessionDataStruct()
+{
+    return SessionDataStruct;
+}
+
 void AMyCoreGameMode::ConfigExperimentalSession()
 {
-    // create or read main session file if it doesnt exist
+    // read or create main session file if it doesnt exist
     // read the main session file if exists and set variables
     // subject number
-    SessionFilePath = FPaths::ProjectDir() + "/Data/Session/";
+    SessionFilePath = FPaths::ProjectDir() + "Data/Session/";
     SessionFileName = SessionFilePath + "main.json";
     if (FPaths::FileExists(SessionFileName))
     {
@@ -61,8 +79,12 @@ void AMyCoreGameMode::ConfigExperimentalSession()
         // File doesn't exist, create and write the JSON file
         CreateSessionJSONFile();
     }
-    InputSubjectTrialInfoFilePath = FPaths::ProjectDir() + "/Data/Subjects/";
-    InputSubjectTrialInfoFile = InputSubjectTrialInfoFilePath + "Subject_001.csv";
+
+    // Read subject csv with trial info
+    InputSubjectTrialInfoFilePath = FPaths::ProjectDir() + "Data/Subjects/Pre/";
+    FString FormattedNum = FString::Printf(TEXT("%03d"), SessionDataStruct.Subject);
+    InputSubjectTrialInfoFile = InputSubjectTrialInfoFilePath + "Subject_"+ FormattedNum+ ".csv";
+    UE_LOG(LogTemp, Warning, TEXT("%s"), *InputSubjectTrialInfoFile);
     ImportCSV(InputSubjectTrialInfoFile);
     if (ExperimentDataTable)
     {
@@ -72,6 +94,7 @@ void AMyCoreGameMode::ConfigExperimentalSession()
         TArray<FExperimentDataStruct*> ExperimentDataTableRows;
         ExperimentDataTable->GetAllRows(TEXT(""), ExperimentDataTableRows);
         NumberOfTrials = ExperimentDataTableRows.Num();
+        NumberOfTrials = 5;
         if (NumberOfTrials != 75)
         {
             UE_LOG(LogTemp, Warning, TEXT("Experiment Data Table should contain 75 rows!"));
@@ -110,6 +133,17 @@ void AMyCoreGameMode::StartExperimentSessionLog()
     }
 }
 
+void AMyCoreGameMode::FinishExperimentalSession()
+{
+    //Export csv
+     // Read subject csv with trial info
+    FString OutputSubjectTrialInfoFilePath = FPaths::ProjectDir() + "Data/Subjects/Post/";
+    FString FormattedNum = FString::Printf(TEXT("%03d"), SessionDataStruct.Subject);
+    FString OutputSubjectTrialInfoFile = OutputSubjectTrialInfoFilePath + "Subject_" + FormattedNum + ".csv";
+    ExportToCSV(OutputSubjectTrialInfoFile);
+    WriteSessionJSONFile(ESessionStateEnum::SessionSuccessful);
+}
+
 void AMyCoreGameMode::ImportCSV(const FString& CSVFileName)
 {
     if (!ExperimentDataTable)
@@ -129,6 +163,7 @@ void AMyCoreGameMode::ImportCSV(const FString& CSVFileName)
     else
     {
         UE_LOG(LogTemp, Warning, TEXT("Failed to read CSV file."));
+        ExperimentDataTable->EmptyTable();
     }
 }
 
@@ -286,6 +321,7 @@ void AMyCoreGameMode::CreateSessionJSONFile()
     FirstSessionData.Subject = 1;
     FirstSessionData.SessionSuccess = "Started";
 
+    SessionDataStruct = FirstSessionData;
     
     TSharedPtr<FJsonObject> JsonObjectFromUStruct = MakeShareable(new FJsonObject);
   
@@ -318,53 +354,6 @@ void AMyCoreGameMode::CreateSessionJSONFile()
         UE_LOG(LogTemp, Warning, TEXT("Could not create JSON file from Struct"));
     }
 
-}
-
-void AMyCoreGameMode::ReadJSONFile()
-{
-    // Define the file path
-    FString JSONFilePath = FPaths::ProjectDir() + TEXT("PlayerScores.json");
-
-    // Check if the file exists
-    if (!FPaths::FileExists(JSONFilePath))
-    {
-        UE_LOG(LogTemp, Warning, TEXT("File not found: %s"), *JSONFilePath);
-        return;
-    }
-
-    // Read the JSON file
-    FString FileContent;
-    if (FFileHelper::LoadFileToString(FileContent, *JSONFilePath))
-    {
-        TSharedPtr<FJsonObject> JsonObject;
-        TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(FileContent);
-
-        // Deserialize the JSON content
-        if (FJsonSerializer::Deserialize(Reader, JsonObject) && JsonObject.IsValid())
-        {
-            TMap<FString, int32> PlayerScores;
-
-            // Populate TMap from JSON object
-            for (const TPair<FString, TSharedPtr<FJsonValue>>& Pair : JsonObject->Values)
-            {
-                PlayerScores.Add(Pair.Key, (int32)Pair.Value->AsNumber());
-            }
-
-            // Log the Player Scores
-            for (const TPair<FString, int32>& PlayerScore : PlayerScores)
-            {
-                UE_LOG(LogTemp, Warning, TEXT("Player: %s, Score: %d"), *PlayerScore.Key, PlayerScore.Value);
-            }
-        }
-        else
-        {
-            UE_LOG(LogTemp, Error, TEXT("Failed to deserialize JSON file: %s"), *JSONFilePath);
-        }
-    }
-    else
-    {
-        UE_LOG(LogTemp, Error, TEXT("Failed to read JSON file: %s"), *JSONFilePath);
-    }
 }
 
 void AMyCoreGameMode::ReadSessionJSONFile()
@@ -406,19 +395,3 @@ void AMyCoreGameMode::ReadSessionJSONFile()
     }
 }
 
-void AMyCoreGameMode::HandleJSONFile()
-{
-    // Define the file path
-    FString JSONFilePath = FPaths::ProjectDir() + TEXT("PlayerScores.json");
-
-    if (FPaths::FileExists(JSONFilePath))
-    {
-        // File exists, read the JSON file
-        ReadJSONFile();
-    }
-    else
-    {
-        // File doesn't exist, create and write the JSON file
-        //WriteJSONFile();
-    }
-}

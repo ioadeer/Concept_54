@@ -21,7 +21,7 @@ void UMyCoreMenu::YesButtonClicked()
 {
 	UE_LOG(LogTemp, Warning, TEXT("Right button clicked"));
 	FTimerHandle NextTrialTimerHandle;
-	FString Answer = "Yes";
+	Answer = "Yes";
 	//MyCoreGameMode->SaveStringToFile(Answer);
 	GetWorld()->GetTimerManager().SetTimer(
 		NextTrialTimerHandle,
@@ -36,7 +36,7 @@ void UMyCoreMenu::NoButtonClicked()
 {
 	UE_LOG(LogTemp, Warning, TEXT("Left button clicked"));
 	FTimerHandle NextTrialTimerHandle;
-	FString Answer = "No";
+	Answer = "No";
 	//MyCoreGameMode->SaveStringToFile(Answer);
 	GetWorld()->GetTimerManager().SetTimer(
 		NextTrialTimerHandle,
@@ -54,7 +54,8 @@ void UMyCoreMenu::QuestionAnsweredCallBack()
 	if (Pawn)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Callback to experiment start"));
-		Pawn->StartTrailSequence();
+		Pawn->SetTrialAnswer(Answer);
+		Pawn->StartTrialSequence();
 	}
 	else
 	{

@@ -7,6 +7,7 @@
 #include "InputAction.h"
 
 #include "../GameMode/MyCoreGameMode.h"
+
 #include "../Data/ExperimentDataStruct.h"
 #include "../Data/RoomMaterial.h"
 #include "../HUD/CoreHud.h"
@@ -35,7 +36,8 @@ public:
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
-	void StartTrailSequence();
+	void StartTrialSequence();
+	void SetTrialAnswer(FString Answer);
 
 private:
 

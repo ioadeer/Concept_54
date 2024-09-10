@@ -21,7 +21,7 @@ void ULandingMenu::CountDown()
 		if (Pawn)
 		{
 			UE_LOG(LogTemp, Warning, TEXT("Callback to experiment start"));
-			Pawn->StartTrailSequence();
+			Pawn->StartTrialSequence();
 		}
 		else
 		{
