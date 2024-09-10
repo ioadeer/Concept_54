@@ -10,6 +10,8 @@
 #include "JsonUtilities.h"
 #include "JsonObjectConverter.h"
 #include "../Data/ExperimentDataStruct.h"
+#include "../Data/SessionDataStruct.h"
+#include "../Data/SessionStateEnum.h"
 
 void AMyCoreGameMode::BeginPlay()
 {
@@ -18,7 +20,7 @@ void AMyCoreGameMode::BeginPlay()
     ConfigExperimentalSession();
     StartExperimentSessionLog();
     //HandleJSONFile();
-    JSONTest();
+    //JSONTest();
 }
 
 FExperimentDataStruct* AMyCoreGameMode::GetTrialAndSetNextTrial()
@@ -40,7 +42,25 @@ void AMyCoreGameMode::ConfigExperimentalSession()
     // subject number
     SessionFilePath = FPaths::ProjectDir() + "/Data/Session/";
     SessionFileName = SessionFilePath + "main.json";
-    // read subject trial file
+    if (FPaths::FileExists(SessionFileName))
+    {
+        // File exists, read the JSON file
+        ReadSessionJSONFile();
+        // Count one more subject
+        SessionDataStruct.Subject++;
+        // Move date to previous date session
+        SessionDataStruct.LastSessionDateTime = SessionDataStruct.SessionDateTime;
+        // Add date
+        FDateTime Now = FDateTime::Now();
+        DateTimeString = Now.ToString(TEXT("%Y-%m-%d_%H-%M-%S")); // e.g., "2024-09-03_15-42-10"
+        SessionDataStruct.SessionDateTime = DateTimeString;
+        WriteSessionJSONFile(ESessionStateEnum::SessionStarted);
+    }
+    else
+    {
+        // File doesn't exist, create and write the JSON file
+        CreateSessionJSONFile();
+    }
     InputSubjectTrialInfoFilePath = FPaths::ProjectDir() + "/Data/Subjects/";
     InputSubjectTrialInfoFile = InputSubjectTrialInfoFilePath + "Subject_001.csv";
     ImportCSV(InputSubjectTrialInfoFile);
@@ -180,7 +200,6 @@ FExperimentDataStruct* AMyCoreGameMode::GetDataTableRowByIndex(int32 Index)
     return DataRow;
 }
 
-
 void AMyCoreGameMode::SaveDatetimeAndAnswerToFile(FString OutputFileName, FString Text)
 {
     FDateTime Now = FDateTime::Now();
@@ -206,68 +225,99 @@ void AMyCoreGameMode::SaveDatetimeAndAnswerToFile(FString OutputFileName, FStrin
    
 }
 
-void AMyCoreGameMode::JSONTest() {
+void AMyCoreGameMode::WriteSessionJSONFile(ESessionStateEnum SessionState)
+{
+    switch (SessionState)
+    {
+    case ESessionStateEnum::SessionStarted:
+        SessionDataStruct.SessionSuccess = "Started";
+        break;
+    case ESessionStateEnum::SessionSuccessful:
+        SessionDataStruct.SessionSuccess = "Succesful";
+        break;
+    case ESessionStateEnum::Error:
+        SessionDataStruct.SessionSuccess = "Error";
+        break;
+    default:
+        SessionDataStruct.SessionSuccess = "Error";
+        break;
+    }
     TSharedPtr<FJsonObject> JsonObjectFromUStruct = MakeShareable(new FJsonObject);
-  
-    /*bool anduvo = FJsonObjectConverter::UStructToJsonObject(
-        FExperimentDataStruct::StaticStruct(),
-        InstantiateFExperimentDS,
+
+    bool JsonObjectCreationSuccess = FJsonObjectConverter::UStructToJsonObject(
+        FSessionDataStruct::StaticStruct(),
+        &SessionDataStruct,
         JsonObjectFromUStruct.ToSharedRef(),
         0,
-        0);*/
-    //if (anduvo)
-    //{
-    //    FString OutputString;
+        0);
 
-    //    // Convert the JSON object to a string
-    //    TSharedRef<TJsonWriter<>> Writer = TJsonWriterFactory<>::Create(&OutputString);
-    //    FJsonSerializer::Serialize(JsonObjectFromUStruct.ToSharedRef(), Writer);
-    //    UE_LOG(LogTemp, Warning, TEXT("Text in writer: %s"), *OutputString);
-
-    //}
-    //else
-    //{
-    //    UE_LOG(LogTemp, Warning, TEXT("Could not read from ustrict"));
-    //}
-}
-
-void AMyCoreGameMode::WriteJSONFile()
-{
-   
-
-
-    // Create a TMap (dictionary-like structure)
-    TMap<FString, int32> PlayerScores;
-    PlayerScores.Add("Player1", 100);
-    PlayerScores.Add("Player2", 200);
-    PlayerScores.Add("Player3", 150);
-
-    // Create a JSON object
-    TSharedPtr<FJsonObject> JsonObject = MakeShareable(new FJsonObject());
-
-    // Populate the JSON object from the TMap
-    for (const TPair<FString, int32>& Pair : PlayerScores)
+    if (JsonObjectCreationSuccess)
     {
-        JsonObject->SetNumberField(Pair.Key, Pair.Value);
-    }
+        FString OutputString;
+        TSharedRef<TJsonWriter<>> Writer = TJsonWriterFactory<>::Create(&OutputString);
+        FJsonSerializer::Serialize(JsonObjectFromUStruct.ToSharedRef(), Writer);
 
-    // Convert JSON object to string
-    FString OutputString;
-    TSharedRef<TJsonWriter<>> Writer = TJsonWriterFactory<>::Create(&OutputString);
-    FJsonSerializer::Serialize(JsonObject.ToSharedRef(), Writer);
-
-    // Define the file path
-    FString JSONFilePath = FPaths::ProjectDir() + TEXT("PlayerScores.json");
-
-    // Write to file
-    if (FFileHelper::SaveStringToFile(OutputString, *JSONFilePath))
-    {
-        UE_LOG(LogTemp, Warning, TEXT("Successfully wrote JSON file: %s"), *JSONFilePath);
+        // Write to file
+        if (FFileHelper::SaveStringToFile(OutputString, *SessionFileName))
+        {
+            UE_LOG(LogTemp, Warning, TEXT("Successfully wrote JSON file: %s"), *SessionFileName);
+        }
+        else
+        {
+            UE_LOG(LogTemp, Error, TEXT("Failed to write JSON file: %s"), *SessionFileName);
+        }
     }
     else
     {
-        UE_LOG(LogTemp, Error, TEXT("Failed to write JSON file: %s"), *JSONFilePath);
+        UE_LOG(LogTemp, Warning, TEXT("Could not create JSON file from Struct"));
     }
+
+}
+
+void AMyCoreGameMode::CreateSessionJSONFile()
+{
+    // creates a json file sets it to participant 1
+    FSessionDataStruct FirstSessionData;
+
+    FirstSessionData.LastSessionDateTime = "InitialSession";
+    FDateTime Now = FDateTime::Now();
+    DateTimeString = Now.ToString(TEXT("%Y-%m-%d_%H-%M-%S")); // e.g., "2024-09-03_15-42-10"
+    FirstSessionData.SessionDateTime = DateTimeString;
+    FirstSessionData.Subject = 1;
+    FirstSessionData.SessionSuccess = "Started";
+
+    
+    TSharedPtr<FJsonObject> JsonObjectFromUStruct = MakeShareable(new FJsonObject);
+  
+    bool JsonObjectCreationSuccess = false;
+    JsonObjectCreationSuccess = FJsonObjectConverter::UStructToJsonObject(
+        FSessionDataStruct::StaticStruct(),
+        &FirstSessionData,
+        JsonObjectFromUStruct.ToSharedRef(),
+        0,
+        0);
+
+    if (JsonObjectCreationSuccess)
+    {
+        FString OutputString;
+        TSharedRef<TJsonWriter<>> Writer = TJsonWriterFactory<>::Create(&OutputString);
+        FJsonSerializer::Serialize(JsonObjectFromUStruct.ToSharedRef(), Writer);
+
+        // Write to file
+        if (FFileHelper::SaveStringToFile(OutputString, *SessionFileName))
+        {
+            UE_LOG(LogTemp, Warning, TEXT("Successfully wrote JSON file: %s"), *SessionFileName);
+        }
+        else
+        {
+            UE_LOG(LogTemp, Error, TEXT("Failed to write JSON file: %s"), *SessionFileName);
+        }
+    }
+    else
+    {
+        UE_LOG(LogTemp, Warning, TEXT("Could not create JSON file from Struct"));
+    }
+
 }
 
 void AMyCoreGameMode::ReadJSONFile()
@@ -317,6 +367,45 @@ void AMyCoreGameMode::ReadJSONFile()
     }
 }
 
+void AMyCoreGameMode::ReadSessionJSONFile()
+{
+    // JsonObjectToUStruct
+
+    FString FileContent;
+    if (FFileHelper::LoadFileToString(FileContent, *SessionFileName))
+    {
+        TSharedPtr<FJsonObject> JsonObject;
+        TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(FileContent);
+        
+        
+        // Deserialize the JSON content
+        if (FJsonSerializer::Deserialize(Reader, JsonObject) && JsonObject.IsValid())
+        {
+            bool StructCreationSuccess = FJsonObjectConverter::JsonObjectToUStruct(
+                JsonObject.ToSharedRef(),
+                FSessionDataStruct::StaticStruct(),
+                &SessionDataStruct,
+                0,
+                0
+            );
+            
+            if (!StructCreationSuccess)
+            {
+                UE_LOG(LogTemp, Error, TEXT("Could not read  json file to struct"));
+            }
+
+        }
+        else
+        {
+            UE_LOG(LogTemp, Error, TEXT("Failed to deserialize JSON file: %s"), *SessionFileName);
+        }
+    }
+    else
+    {
+        UE_LOG(LogTemp, Error, TEXT("Failed to read JSON file: %s"), *SessionFileName);
+    }
+}
+
 void AMyCoreGameMode::HandleJSONFile()
 {
     // Define the file path
@@ -330,6 +419,6 @@ void AMyCoreGameMode::HandleJSONFile()
     else
     {
         // File doesn't exist, create and write the JSON file
-        WriteJSONFile();
+        //WriteJSONFile();
     }
 }

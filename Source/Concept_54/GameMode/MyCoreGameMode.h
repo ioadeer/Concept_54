@@ -5,6 +5,9 @@
 #include "CoreMinimal.h"
 #include "GameFramework/GameModeBase.h"
 #include "../Data/ExperimentDataStruct.h"
+#include "../Data/SessionDataStruct.h"
+#include "../Data/SessionStateEnum.h"
+
 #include "MyCoreGameMode.generated.h"
 
 /**
@@ -21,7 +24,7 @@ protected:
 
 public:
 	void SaveDatetimeAndAnswerToFile(FString PathToOutputFile, FString Text);
-	void JSONTest();
+
 	FExperimentDataStruct* GetTrialAndSetNextTrial();
 
 private:
@@ -39,6 +42,9 @@ private:
 
 	void ModifyDataTableRowByIndex(int32 Index, const FExperimentDataStruct& NewData);
 	FExperimentDataStruct* GetDataTableRowByIndex(int32 Index);
+
+	// Session data 
+	FSessionDataStruct SessionDataStruct;
 
 	// Variables
 	int32 TrialIndex = 0;
@@ -60,8 +66,11 @@ private:
 
 	FString ExportSubjectTrailInfoFile;
 
-	void WriteJSONFile();
+	void CreateSessionJSONFile();
+	void ReadSessionJSONFile();
+	void WriteSessionJSONFile(ESessionStateEnum SessionState);
 	void ReadJSONFile();
 	void HandleJSONFile();
+
 };
 
